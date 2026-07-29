@@ -20,3 +20,20 @@ This project highlights practical skills in **Azure security**, **threat hunting
 This project was built in Microsoft Azure to observe and investigate real-world attacks against an internet-facing MySQL server. The environment consists of a Windows 11 virtual machine (`CORP-EP-SH231`) running MySQL Server inside an Azure Virtual Network. **Microsoft Defender for Endpoint (MDE)** was deployed to collect endpoint telemetry, while all MySQL queries and MySQL logon attempts were recorded in **`mysql_general.log`** and forwarded to an Azure **Log Analytics Workspace** for analysis. Before exposing the system to the internet, a clean baseline was established to verify that logging, monitoring, and telemetry were functioning correctly.
 
 Once the environment was fully instrumented, the **Network Security Group (NSG)** was reconfigured to allow inbound traffic, making the MySQL service accessible from the internet. As attackers interacted with the server, every MySQL query and logon attempt was captured in the MySQL General Query Log, while Microsoft Defender collected endpoint telemetry such as process creation, network connections, file activity, and security events. By correlating database logs with endpoint telemetry, it was possible to reconstruct the attack, identify the attacker's actions, and perform a complete incident investigation following the compromise.
+
+---
+
+# Phase 1 – Build and Secure the Honeypot
+
+A Windows 11 virtual machine named **CORP-EP-SH231** was deployed in Microsoft Azure with a public IP address and a strong local administrator account (`g_berkin`). Before exposing the system to the internet, the **Network Security Group (NSG)** was configured to block all inbound traffic while **Microsoft Defender for Endpoint (MDE)** was installed and validated to ensure endpoint telemetry was being collected. Once the onboarding process was complete, the device successfully appeared in the Microsoft Defender portal and began reporting to the **DeviceInfo** table, confirming the environment was fully monitored and ready for the next phase.
+
+> **Screenshots**
+>
+> - Azure VM deployment
+> - Azure NSG showing all inbound traffic blocked
+> - Microsoft Defender for Endpoint onboarding
+> - Device visible in **Assets → Devices**
+> - Device reporting in the **DeviceInfo** table
+
+---
+
