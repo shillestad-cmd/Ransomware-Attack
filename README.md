@@ -56,6 +56,7 @@ SET GLOBAL general_log = 'ON';
 SET GLOBAL log_output = 'FILE';
 SHOW VARIABLES LIKE 'general_log%';
 ```
+---
 
 ## Phase 3 – Configure MySQL Logging in Azure Log Analytics
 
@@ -74,6 +75,67 @@ DeviceInfo
 
 <img width="2015" height="763" alt="image" src="https://github.com/user-attachments/assets/9e5d87ef-cd3e-4598-89a5-760e52bb1dc9" />
 
+---
 
+## Phase 4 – Deliberately Expose the Environment
 
+**Step 1** – Configure Local Accounts
+
+Using **Computer Management (`compmgmt.msc`)**, the local accounts were configured to intentionally reduce authentication security within the lab environment.
+
+The following changes were made:
+
+- Enabled the local **Administrator** account.
+- Verified the account was a member of the **Administrators** group.
+- Configured a weak password for the Administrator account.
+- Enabled the local **Guest** account.
+- Added the Guest account to the **Users** group.
+- Configured Guest account logon permissions.
+- Updated Local Security Policy settings.
+- Applied the new policy using powershell:
+```
+gpupdate /force
+```
+**Step 2** – Configure Remote MySQL Authentication
+
+To simulate an insecure database deployment, a remote MySQL administrative account was created.
+
+The following SQL statements were executed:
+
+```sql
+CREATE USER 'root'@'%' IDENTIFIED BY 'root';
+
+GRANT ALL PRIVILEGES
+ON *.*
+TO 'root'@'%'
+WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+```
+
+### What These Commands Do
+
+| Command | Purpose |
+|----------|---------|
+| `CREATE USER` | Creates a new MySQL user account. |
+| `'%'` | Allows connections from any IP address. |
+| `GRANT ALL PRIVILEGES` | Gives the account full administrative access. |
+| `WITH GRANT OPTION` | Allows the account to grant permissions to other users. |
+| `FLUSH PRIVILEGES` | Immediately applies the permission changes. |
+
+**Step 3** – Capture a Baseline Investigation Package
+
+Before exposing the virtual machine, a **Microsoft Defender for Endpoint Investigation Package** was collected.
+
+This package serves as the **pre-compromise baseline** and was later compared with a second investigation package collected after the attack.
+
+The comparison helped identify:
+
+- New files
+- Running processes
+- Network connections
+- Registry changes
+- Installed software
+- System configuration changes
+- Potential persistence mechanisms
 
