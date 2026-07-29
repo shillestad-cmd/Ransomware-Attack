@@ -37,3 +37,28 @@ A Windows 11 virtual machine named **CORP-EP-SH231** was deployed in Microsoft A
 
 ---
 
+# Phase 2 – Install and Configure MySQL
+
+MySQL was installed on **CORP-EP-SH231** after first installing the required **Microsoft Visual C++ 2019 Redistributable (x64)** dependency. The **Developer Default** installation option was selected to install both **MySQL Server** and **MySQL Workbench**. A strong root password was configured during setup, and a new local connection was created in MySQL Workbench to verify the installation. After confirming connectivity, a sample corporate database (`ironpeak_corp_01`) was imported to simulate a production environment. Finally, the **MySQL General Query Log** was enabled so that every MySQL connection, authentication attempt, and SQL query would be written to **`mysql_general.log`**, providing the primary forensic evidence used throughout the remainder of this investigation.
+
+> **Screenshots**
+>
+> - Microsoft Visual C++ 2019 Redistributable installation
+> - MySQL Installer (Developer Default)
+> - MySQL Workbench connection
+> - Imported database (`ironpeak_corp_01`)
+> - Successful data import
+> - MySQL General Query Log enabled
+> - `SHOW VARIABLES LIKE 'general_log%';` output
+
+---
+
+## Enable MySQL General Query Logging
+
+The following SQL commands were executed to enable the MySQL General Query Log and configure MySQL to write all connection activity, authentication attempts, and SQL queries to a log file.
+
+```sql
+SET GLOBAL general_log = 'ON';
+SET GLOBAL log_output = 'FILE';
+SHOW VARIABLES LIKE 'general_log%';
+```
