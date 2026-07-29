@@ -56,3 +56,16 @@ SET GLOBAL general_log = 'ON';
 SET GLOBAL log_output = 'FILE';
 SHOW VARIABLES LIKE 'general_log%';
 ```
+
+# Phase 3 – Configure MySQL Logging in Azure Log Analytics
+
+The goal of this phase is to:
+
+- Verify Microsoft Defender telemetry is reporting correctly.
+- Install the **Azure Monitor Agent (AMA)**.
+- Create a custom **Data Collection Rule (DCR)**.
+- Collect the MySQL General Query Log.
+- Store the logs in a custom Log Analytics table named **MySQLAudit_CL**.
+- Verify that SQL activity is successfully being ingested.
+
+
