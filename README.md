@@ -79,7 +79,7 @@ DeviceInfo
 
 ## Phase 4 – Deliberately Expose the Environment
 
-**Step 1** – Configure Local Accounts
+**Step 1 – Configure Local Accounts**
 
 Using **Computer Management (`compmgmt.msc`)**, the local accounts were configured to intentionally reduce authentication security within the lab environment.
 
@@ -96,7 +96,7 @@ The following changes were made:
 ```
 gpupdate /force
 ```
-**Step 2** – Configure Remote MySQL Authentication
+**Step 2 – Configure Remote MySQL Authentication**
 
 To simulate an insecure database deployment, a remote MySQL administrative account was created.
 
@@ -123,7 +123,7 @@ FLUSH PRIVILEGES;
 | `WITH GRANT OPTION` | Allows the account to grant permissions to other users. |
 | `FLUSH PRIVILEGES` | Immediately applies the permission changes. |
 
-**Step 3** – Capture a Baseline Investigation Package
+**Step 3 – Capture a Baseline Investigation Package**
 
 Before exposing the virtual machine, a **Microsoft Defender for Endpoint Investigation Package** was collected.
 
@@ -139,3 +139,11 @@ The comparison helped identify:
 - System configuration changes
 - Potential persistence mechanisms
 
+**Step 4 – Increase System Discoverability**
+
+After confirming that all monitoring solutions were functioning correctly, the environment was intentionally made easier to discover.
+
+The following changes were made:
+
+- Windows Firewall disabled.
+- Azure Network Security Group (NSG) updated to allow inbound traffic.
