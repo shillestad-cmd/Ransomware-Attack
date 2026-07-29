@@ -23,12 +23,10 @@ Once the environment was fully instrumented, the **Network Security Group (NSG)*
 
 ---
 
-# Phase 1 – Build and Secure the Honeypot
+## Phase 1 – Build and Secure the Honeypot
 
 A Windows 11 virtual machine named **CORP-EP-SH231** was deployed in Microsoft Azure with a public IP address and a strong local administrator account (`g_berkin`). Before exposing the system to the internet, the **Network Security Group (NSG)** was configured to block all inbound traffic while **Microsoft Defender for Endpoint (MDE)** was installed and validated to ensure endpoint telemetry was being collected. Once the onboarding process was complete, the device successfully appeared in the Microsoft Defender portal and began reporting to the **DeviceInfo** table, confirming the environment was fully monitored and ready for the next phase.
 
-> **Screenshots**
->
 > - Azure VM deployment
 > - Azure NSG showing all inbound traffic blocked
 > - Microsoft Defender for Endpoint onboarding
@@ -37,23 +35,19 @@ A Windows 11 virtual machine named **CORP-EP-SH231** was deployed in Microsoft A
 
 ---
 
-# Phase 2 – Install and Configure MySQL
+## Phase 2 – Install and Configure MySQL
 
 MySQL was installed on **CORP-EP-SH231** after first installing the required **Microsoft Visual C++ 2019 Redistributable (x64)** dependency. The **Developer Default** installation option was selected to install both **MySQL Server** and **MySQL Workbench**. A strong root password was configured during setup, and a new local connection was created in MySQL Workbench to verify the installation. After confirming connectivity, a sample corporate database (`ironpeak_corp_01`) was imported to simulate a production environment. Finally, the **MySQL General Query Log** was enabled so that every MySQL connection, authentication attempt, and SQL query would be written to **`mysql_general.log`**, providing the primary forensic evidence used throughout the remainder of this investigation.
 
-> **Screenshots**
->
 > - Microsoft Visual C++ 2019 Redistributable installation
 > - MySQL Installer (Developer Default)
 > - MySQL Workbench connection
-> - Imported database (`ironpeak_corp_01`)
+> - Imported Database: [db_info_import.sql](https://docs.google.com/document/d/1FCaBPP71vzG8B2ZMM1tm1UdtDCH3px8eFLeVq5dfubA/edit?usp=sharing)
 > - Successful data import
 > - MySQL General Query Log enabled
 > - `SHOW VARIABLES LIKE 'general_log%';` output
 
----
-
-## Enable MySQL General Query Logging
+ Enable MySQL General Query Logging
 
 The following SQL commands were executed to enable the MySQL General Query Log and configure MySQL to write all connection activity, authentication attempts, and SQL queries to a log file.
 
