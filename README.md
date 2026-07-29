@@ -113,7 +113,7 @@ WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 ```
 
-### What These Commands Do
+**What These Commands Do**
 
 | Command | Purpose |
 |----------|---------|
