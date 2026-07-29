@@ -57,15 +57,23 @@ SET GLOBAL log_output = 'FILE';
 SHOW VARIABLES LIKE 'general_log%';
 ```
 
-# Phase 3 – Configure MySQL Logging in Azure Log Analytics
+## Phase 3 – Configure MySQL Logging in Azure Log Analytics
 
-The goal of this phase is to:
+In this phase, we configure **Azure Monitor Agent (AMA)** and a **Data Collection Rule (DCR)** to continuously collect MySQL General Query Logs from the virtual machine and send them to **Azure Log Analytics**. This allows all MySQL activity to be centrally collected and searched using Kusto Query Language (KQL).
 
-- Verify Microsoft Defender telemetry is reporting correctly.
-- Install the **Azure Monitor Agent (AMA)**.
-- Create a custom **Data Collection Rule (DCR)**.
-- Collect the MySQL General Query Log.
-- Store the logs in a custom Log Analytics table named **MySQLAudit_CL**.
-- Verify that SQL activity is successfully being ingested.
+  **Step 1** – Verify Defender Telemetry
+DeviceInfo
+| where DeviceName startswith "corp-ep-sh231"
+| order by TimeGenerated asc
+
+<img width="1432" height="884" alt="image" src="https://github.com/user-attachments/assets/d8c8a9c4-4dc3-4522-8cd3-e00b4a7864ae" />
+
+**Step 2** – Create the Data Collection Rule (DCR) in Azure
+
+**Step 3** – Verify table MySQLAudit_CL/**`mysql_general.log`** in Azure 
+
+<img width="2015" height="763" alt="image" src="https://github.com/user-attachments/assets/9e5d87ef-cd3e-4598-89a5-760e52bb1dc9" />
+
+
 
 
