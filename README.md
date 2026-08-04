@@ -210,13 +210,9 @@ Connect root@64.89.163.79 using TCP/IP
 
 This confirmed the attacker had successfully connected to the exposed MySQL server.
 
-> 📸 **Screenshot Here**
+> <img width="1779" height="465" alt="image" src="https://github.com/user-attachments/assets/6477326f-50d0-48fc-b89a-ed9748cba940" />
 >
-> **File:** `SQL Logons.csv`
->
-> Capture the first successful `root@64.89.163.79` connection.
->
-> *(Excel approximately lines 225–233)*
+> Captures the first successful `root@64.89.163.79` connection.
 
 ### Stage 2 – Reconnaissance
 
@@ -242,7 +238,7 @@ SHOW FULL COLUMNS FROM ironpeak_corp_01.customers;
 SHOW FULL COLUMNS FROM ironpeak_corp_01.orders;
 ```
 
-### Purpose
+#### Purpose
 
 These commands allowed the attacker to determine:
 
@@ -250,17 +246,6 @@ These commands allowed the attacker to determine:
 - Business tables
 - Sensitive columns
 - Server configuration
-
-before launching the destructive phase.
-
-> 📸 **Screenshot Here**
->
-> **File:** `SQL queries by attacker.csv`
->
-> Capture the first `SHOW DATABASES` and `SHOW FULL TABLES` queries.
->
-> *(Excel approximately lines 455–490)*
-
 
 ### Stage 3 – Database Destruction
 
@@ -303,19 +288,8 @@ PURGE BINARY LOGS;
 
 RESET MASTER;
 ```
-
 These commands reduce the ability to perform point-in-time database recovery.
 
-> 📸 **Screenshot Here**
->
-> **File:** `SQL queries by attacker.csv`
->
-> Capture:
->
-> - `PURGE BINARY LOGS`
-> - `RESET MASTER`
->
-> *(Excel approximately lines 542–562)*
 
 ### Stage 5 – Ransom Note
 
@@ -336,17 +310,10 @@ When MySQL Workbench was opened after the attack, the original **ironpeak_corp_0
 
 This confirmed the attacker had completed the attack.
 
-> 📸 **Screenshot Here**
->
-> **File:** `SQL queries by attacker.csv`
->
-> Capture the `INSERT INTO recover_your_data` query.
->
-> *(Excel approximately line 561)*
+> <img width="1706" height="866" alt="MySQL_workbench_compromised" src="https://github.com/user-attachments/assets/1cbaab82-b59c-4e4e-bdfe-df750173b3ca" />
 
-> 📸 **Screenshot Here**
->
-> Insert your **MySQL Workbench** screenshot showing the **recover_your_data** database replacing the original business database.
+> <img width="2012" height="326" alt="image" src="https://github.com/user-attachments/assets/2bc23dbe-ea10-4d46-b214-f4587fc43ab2" />
+
 
 ### Incident Summary
 
