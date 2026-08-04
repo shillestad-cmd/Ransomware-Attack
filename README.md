@@ -25,7 +25,7 @@
 
 This project documents the process of building, monitoring, exposing, and investigating an internet-facing MySQL server hosted in Microsoft Azure. The environment was initially secured and configured with **Microsoft Defender for Endpoint (MDE)**, **Azure Monitor Agent (AMA)**, and **MySQL General Query Logging** to establish a clean baseline and capture detailed telemetry before exposing the server to the internet.
 
-After logging and monitoring were verified, the environment was intentionally exposed to observe real-world attacker activity. An database extortion attack targeted the MySQL database, resulting in the deletion of multiple databases and the creation of a ransom note. The remainder of this project focuses on reconstructing the attack, analyzing forensic evidence, and demonstrating the incident response process using **Microsoft Defender telemetry**, **Azure Monitor Agent (AMA)**, and **Kusto Query Language (KQL)**.
+After logging and monitoring were verified, the environment was intentionally exposed to observe real-world attacker activity. A database extortion attack targeted the MySQL database, resulting in the deletion of multiple databases and the creation of a ransom note. The remainder of this project focuses on reconstructing the attack, analyzing forensic evidence, and demonstrating the incident response process using **Microsoft Defender telemetry**, **Azure Monitor Agent (AMA)**, and **Kusto Query Language (KQL)**.
 
 The original plan was to continue through the **eradication** and **recovery** phases by remediating the compromised system. However, the attack left the virtual machine in a state where it could no longer be trusted. Rather than attempting to recover an untrusted system, the VM was wiped, rebuilt from a known-good state, and the MySQL environment was reconstructed. This reflects a common real-world incident response decision: when the integrity of a system cannot be confidently verified, rebuilding from a known-good baseline is often the safest and most reliable recovery strategy.
 
@@ -80,6 +80,8 @@ SHOW VARIABLES LIKE 'general_log%';
 ## Phase 3 – Configure MySQL Logging in Azure Log Analytics
 
 In this phase, we configure **Azure Monitor Agent (AMA)** and a **Data Collection Rule (DCR)** to continuously collect MySQL General Query Logs from the virtual machine and send them to **Azure Log Analytics**. This allows all MySQL activity to be centrally collected and searched using Kusto Query Language (KQL).
+
+Rather than relying on the local MySQL General Query Log stored on the virtual machine, forwarding the logs to Azure Log Analytics ensured that forensic evidence remained available even if the attacker deleted databases or attempted to remove local artifacts. Centralized logging is a common security practice because it preserves evidence independently of the compromised system and enables investigators to correlate database activity with endpoint telemetry during incident response.
 
 ### Step 1 – Verify Defender Telemetry
 
@@ -304,7 +306,7 @@ These commands allowed the attacker to determine:
 
 Once reconnaissance was complete, the attacker immediately began deleting business data.
 
-The following reconnaissance queries were observed in the MySQL General Query Log:
+The following destructive SQL statements were observed in the MySQL General Query Log:
 
 ```sql
 DROP TABLE customers;
