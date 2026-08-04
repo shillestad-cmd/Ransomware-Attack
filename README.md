@@ -151,7 +151,7 @@ The following changes were made:
 
  ---
 
- ## Phase 5 – Detect the Breach
+## Phase 5 – Detect the Breach
 
 After intentionally exposing **CORP-EP-SH231** to the internet, the environment was continuously monitored using **Microsoft Defender for Endpoint**, **Azure Log Analytics**, and the **MySQL General Query Log**.
 
@@ -314,16 +314,110 @@ This confirmed the attacker had completed the attack.
 
 > <img width="2012" height="326" alt="image" src="https://github.com/user-attachments/assets/2bc23dbe-ea10-4d46-b214-f4587fc43ab2" />
 
+---
 
-### Incident Summary
+## Post-Incident Summary & Threat Assessment
 
-The investigation determined:
+Following completion of the forensic investigation, the decision was made to rebuild the virtual machine rather than attempt to repair the compromised MySQL instance.
 
-- The MySQL server was discovered approximately **20 minutes** after being exposed to the internet.
-- The attacker successfully authenticated remotely using a privileged MySQL account.
-- The database environment was systematically enumerated.
-- Business tables and databases were intentionally deleted.
-- MySQL recovery logs were modified to complicate restoration.
-- A Bitcoin ransom note replaced the production database.
+The investigation confirmed that the MySQL database had been successfully compromised and destroyed; however, there was no conclusive evidence that the Windows operating system itself had been infected with traditional file-encrypting ransomware or that a persistent Windows malware payload remained on the host. Microsoft Defender Investigation Packages collected before and after the incident did not identify obvious persistence mechanisms, malicious Windows services, or unauthorized software installations.
 
-No evidence of traditional Windows file-encrypting ransomware or persistent Windows malware was identified during analysis. Instead, the attack was isolated to the MySQL service and is most consistent with an **automated database extortion campaign** targeting exposed internet-facing MySQL servers.
+Instead, the attacker targeted the exposed MySQL service directly. Analysis of the MySQL General Query Log showed that the attacker successfully authenticated to the exposed database, performed reconnaissance by enumerating databases and tables, deleted the business data, removed recovery information by modifying MySQL binary logs, and replaced the production database with a new database containing a Bitcoin ransom note.
+
+Because this was a controlled lab environment and the original **ironpeak_corp_01** database had been backed up prior to exposure, rebuilding the environment was determined to be the fastest, safest, and most reliable recovery strategy. Rather than attempting to manually repair the damaged database, the compromised virtual machine was discarded, a new virtual machine was deployed, MySQL Server was reinstalled, and the backed-up database was restored.
+
+This recovery approach provided several advantages:
+
+- Eliminated any uncertainty regarding the integrity of the compromised environment.
+- Restored the lab to a known-good state using trusted installation media.
+- Allowed the production database to be restored quickly from backup.
+- Preserved the compromised virtual machine and collected evidence for future forensic analysis.
+- Reduced overall recovery time compared to attempting manual database repair.
+
+
+# Threat Assessment
+
+Based on the forensic evidence collected during this investigation, the incident is assessed to be an **opportunistic automated database extortion campaign** targeting an internet-exposed MySQL server.
+
+Several factors support this assessment.
+
+The virtual machine was intentionally exposed to the internet at:
+
+```text
+2026-07-20T14:02:47.9214895Z
+```
+
+The first confirmed malicious SQL activity was observed approximately **20 minutes later**, demonstrating how quickly exposed internet-facing services can be discovered by automated scanning infrastructure.
+
+The attack followed a structured and repeatable sequence:
+
+```text
+Internet Discovery
+        │
+        ▼
+Remote MySQL Authentication
+        │
+        ▼
+Database Enumeration
+        │
+        ▼
+Table Enumeration
+        │
+        ▼
+DROP TABLE
+        │
+        ▼
+DROP DATABASE
+        │
+        ▼
+PURGE BINARY LOGS
+        │
+        ▼
+RESET MASTER
+        │
+        ▼
+CREATE DATABASE recover_your_data
+        │
+        ▼
+INSERT Bitcoin Ransom Note
+```
+
+The attacker systematically connected to the exposed MySQL service, gathered information about the database environment, deleted the business tables and databases, attempted to hinder recovery by purging MySQL binary logs, and finally replaced the production database with a Bitcoin ransom note.
+
+Analysis of the Microsoft Defender Investigation Packages found no evidence of traditional Windows ransomware, malicious Windows services, or persistent malware. Instead, every confirmed malicious action occurred through legitimate SQL commands executed against the exposed MySQL service. This strongly suggests the attacker achieved their objective without compromising the Windows operating system itself.
+
+Although the ransom note claimed that the database had been copied before deletion, the evidence collected during this investigation does **not** confirm successful data exfiltration. Additional network telemetry, including Microsoft Defender `DeviceNetworkEvents`, Azure Virtual Network Flow Logs, Azure Firewall logs, or packet captures, would be required to determine whether any data was transmitted outside the environment.
+
+Based on the timing of the compromise, the sequence of SQL commands, the Microsoft Defender findings, and the overall attack workflow, this incident is most consistent with an **opportunistic automated database extortion campaign** rather than a targeted intrusion against the organization. The exposed MySQL service was likely discovered through automated internet scanning, after which a scripted sequence of reconnaissance, destructive SQL commands, recovery inhibition, and extortion was executed.
+
+---
+
+# Confidence Assessment
+
+| Finding | Confidence |
+|----------|------------|
+| MySQL database successfully compromised | **High** |
+| Business data intentionally destroyed | **High** |
+| Recovery logs intentionally removed | **High** |
+| Bitcoin extortion attempt | **High** |
+| Automated attack workflow | **High** |
+| Traditional Windows ransomware | **Low** |
+| Persistent Windows compromise | **Low** |
+| Data exfiltration | **Not Confirmed** |
+
+---
+
+# Lessons Learned
+
+This project demonstrated how quickly an exposed internet-facing database can become the target of automated attacks. Within approximately **20 minutes** of exposure, the MySQL service was discovered, authenticated against, and subjected to a complete database extortion attack.
+
+The investigation reinforced several important security principles:
+
+- Internet-facing databases should never be publicly accessible unless absolutely necessary.
+- Weak credentials and unrestricted remote administrative access dramatically increase risk.
+- Database activity logs provide critical forensic evidence during incident response.
+- Collecting baseline forensic evidence before an incident greatly improves post-incident analysis.
+- Reliable backups provide the fastest and safest path to recovery following destructive attacks.
+- Comprehensive logging and centralized telemetry enable investigators to accurately reconstruct an attack timeline and distinguish confirmed evidence from assumptions.
+
+While the attacker successfully destroyed the MySQL database and left a Bitcoin ransom note, the available evidence does **not** support the conclusion that the Windows operating system was fully compromised or that data was successfully exfiltrated. Rebuilding the virtual machine and restoring the backed-up database returned the environment to a known-good state while preserving the compromised system for forensic analysis.
