@@ -153,20 +153,210 @@ The following changes were made:
 
  ## Phase 5 – Detect the Breach
 
-Analysis of the MySQL General Query Log showed that the attacker began executing malicious SQL commands at approximately **14:23 UTC**.
+After intentionally exposing **CORP-EP-SH231** to the internet, the environment was continuously monitored using **Microsoft Defender for Endpoint**, **Azure Log Analytics**, and the **MySQL General Query Log**.
 
-This means the exposed MySQL service was compromised in approximately:
+The objective of this phase was to determine how quickly an internet-facing MySQL server would be discovered and compromised while collecting every stage of the attack for forensic analysis.
 
-**≈ 20 minutes**
+### Exposure Timestamp
 
-Within that time, the attacker:
+The virtual machine was intentionally exposed to the internet at:
 
-- Discovered the exposed MySQL service.
-- Authenticated using a privileged MySQL account.
-- Enumerated databases and tables.
-- Deleted the business tables.
-- Deleted the `ironpeak_corp_01` database.
-- Reset and purged MySQL binary logs.
-- Created the `recover_your_data` database.
-- Inserted a Bitcoin ransom note.
- 
+```text
+2026-07-20T14:02:47.9214895Z
+```
+This timestamp marks the beginning of the incident investigation window.
+
+### Time to Compromise
+
+Analysis of the MySQL General Query Log showed the first confirmed malicious activity began approximately **20 minutes later**.
+
+```text
+Exposure Time:
+2026-07-20T14:02:47.9214895Z
+
+First Confirmed Malicious SQL Activity:
+2026-07-20 14:22:57 UTC
+
+Time to Compromise:
+≈ 20 Minutes
+```
+
+This demonstrates how quickly an exposed internet-facing database can be discovered and compromised.
+
+### Attack Timeline
+
+| Time (UTC) | Stage | Description |
+|------------|-------|-------------|
+| **14:02:47** | Environment Exposed | VM intentionally exposed to the Internet |
+| **14:22:57** | Reconnaissance | Attacker begins querying MySQL configuration |
+| **14:24:36** | Initial Access | Successful remote authentication from **64.89.163.79** |
+| **14:24:36+** | Discovery | Databases, tables, and columns enumerated |
+| **Immediately After** | Impact | Business tables and databases deleted |
+| **Immediately After** | Recovery Inhibition | Binary logs purged and reset |
+| **Immediately After** | Extortion | Bitcoin ransom note inserted |
+
+### Stage 1 – Initial Access
+
+Approximately twenty minutes after exposure, the first successful remote MySQL authentication was observed.
+
+The attacker authenticated remotely using the MySQL **root** account.
+
+Example log entry:
+
+```text
+2026-07-20T14:24:36.790055Z
+Connect root@64.89.163.79 using TCP/IP
+```
+
+This confirmed the attacker had successfully connected to the exposed MySQL server.
+
+> 📸 **Screenshot Here**
+>
+> **File:** `SQL Logons.csv`
+>
+> Capture the first successful `root@64.89.163.79` connection.
+>
+> *(Excel approximately lines 225–233)*
+
+### Stage 2 – Reconnaissance
+
+After connecting, the attacker began identifying the database environment.
+
+Queries observed included:
+
+```sql
+SELECT ... FROM INFORMATION_SCHEMA.FILES;
+
+SHOW VARIABLES LIKE 'lower_case_table_names';
+
+SHOW DATABASES;
+```
+
+The attacker then enumerated the business database.
+
+```sql
+SHOW FULL TABLES FROM ironpeak_corp_01;
+
+SHOW FULL COLUMNS FROM ironpeak_corp_01.customers;
+
+SHOW FULL COLUMNS FROM ironpeak_corp_01.orders;
+```
+
+### Purpose
+
+These commands allowed the attacker to determine:
+
+- Available databases
+- Business tables
+- Sensitive columns
+- Server configuration
+
+before launching the destructive phase.
+
+> 📸 **Screenshot Here**
+>
+> **File:** `SQL queries by attacker.csv`
+>
+> Capture the first `SHOW DATABASES` and `SHOW FULL TABLES` queries.
+>
+> *(Excel approximately lines 455–490)*
+
+
+### Stage 3 – Database Destruction
+
+Once reconnaissance was complete, the attacker immediately began deleting business data.
+
+Observed SQL included:
+
+```sql
+DROP TABLE customers;
+
+DROP TABLE orders;
+
+DROP TABLE payments;
+
+DROP TABLE credentials;
+
+DROP DATABASE ironpeak_corp_01;
+```
+
+### Impact
+
+The attacker destroyed:
+
+- Customer records
+- Payment history
+- Orders
+- Stored credentials
+- Primary business database
+
+This represented the primary impact of the attack.
+
+### Stage 4 – Recovery Inhibition
+
+The attacker attempted to make recovery more difficult by modifying the MySQL binary logs.
+
+Observed SQL:
+
+```sql
+PURGE BINARY LOGS;
+
+RESET MASTER;
+```
+
+These commands reduce the ability to perform point-in-time database recovery.
+
+> 📸 **Screenshot Here**
+>
+> **File:** `SQL queries by attacker.csv`
+>
+> Capture:
+>
+> - `PURGE BINARY LOGS`
+> - `RESET MASTER`
+>
+> *(Excel approximately lines 542–562)*
+
+### Stage 5 – Ransom Note
+
+After deleting the original databases, the attacker created a replacement database.
+
+```sql
+CREATE DATABASE recover_your_data;
+```
+
+The attacker then inserted a Bitcoin ransom message into the new database.
+
+```sql
+INSERT INTO recover_your_data
+VALUES (...Bitcoin ransom note...)
+```
+
+When MySQL Workbench was opened after the attack, the original **ironpeak_corp_01** database had been completely replaced by **recover_your_data**.
+
+This confirmed the attacker had completed the attack.
+
+> 📸 **Screenshot Here**
+>
+> **File:** `SQL queries by attacker.csv`
+>
+> Capture the `INSERT INTO recover_your_data` query.
+>
+> *(Excel approximately line 561)*
+
+> 📸 **Screenshot Here**
+>
+> Insert your **MySQL Workbench** screenshot showing the **recover_your_data** database replacing the original business database.
+
+### Incident Summary
+
+The investigation determined:
+
+- The MySQL server was discovered approximately **20 minutes** after being exposed to the internet.
+- The attacker successfully authenticated remotely using a privileged MySQL account.
+- The database environment was systematically enumerated.
+- Business tables and databases were intentionally deleted.
+- MySQL recovery logs were modified to complicate restoration.
+- A Bitcoin ransom note replaced the production database.
+
+No evidence of traditional Windows file-encrypting ransomware or persistent Windows malware was identified during analysis. Instead, the attack was isolated to the MySQL service and is most consistent with an **automated database extortion campaign** targeting exposed internet-facing MySQL servers.
