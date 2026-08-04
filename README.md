@@ -390,7 +390,7 @@ This recovery approach provided several advantages:
 - Reduced overall recovery time compared to attempting manual database repair.
 
 
-# Threat Assessment
+### Threat Assessment
 
 Based on the forensic evidence collected during this investigation, the incident is assessed to be an **opportunistic automated database extortion campaign** targeting an internet-exposed MySQL server.
 
@@ -447,7 +447,7 @@ Based on the timing of the compromise, the sequence of SQL commands, the Microso
 
 ---
 
-# Confidence Assessment
+### Confidence Assessment
 
 | Finding | Confidence |
 |----------|------------|
@@ -457,13 +457,12 @@ Based on the timing of the compromise, the sequence of SQL commands, the Microso
 | Bitcoin extortion attempt | **High** |
 | Automated attack workflow | **High** |
 | Traditional Windows ransomware | **Low** |
-| Persistent Windows compromise | **Low** |
 | Windows Operating System Compromise | **Low** |
 | Data exfiltration | **Not Confirmed** |
 
 ---
 
-# Lessons Learned
+### Lessons Learned
 
 This project demonstrated how quickly an exposed internet-facing database can become the target of automated attacks. Within approximately **20 minutes** of exposure, the MySQL service was discovered, authenticated against, and subjected to a complete database extortion attack.
 
@@ -490,7 +489,7 @@ While my investigation does not attribute this incident to JadePuffer or any oth
 
 ---
 
-# References
+## References
 
 - **[Sysdig / Dark Reading – JadePuffer: The First Complete LLM-Driven Ransomware Attack](https://www.darkreading.com/cyberattacks-data-breaches/jadepuffer-first-complete-llm-driven-ransomware-attack)**
 
