@@ -421,3 +421,23 @@ The investigation reinforced several important security principles:
 - Comprehensive logging and centralized telemetry enable investigators to accurately reconstruct an attack timeline and distinguish confirmed evidence from assumptions.
 
 While the attacker successfully destroyed the MySQL database and left a Bitcoin ransom note, the available evidence does **not** support the conclusion that the Windows operating system was fully compromised or that data was successfully exfiltrated. Rebuilding the virtual machine and restoring the backed-up database returned the environment to a known-good state while preserving the compromised system for forensic analysis.
+
+---
+
+## Industry Context
+
+During this investigation, the evidence indicated that the attack was most consistent with an opportunistic automated database extortion campaign targeting an exposed MySQL service.
+
+Although this investigation found no evidence that artificial intelligence was used during the attack, recent industry research demonstrates that database-focused extortion campaigns continue to evolve. In July 2026, researchers at Sysdig documented **JadePuffer**, which they described as the first publicly documented end-to-end ransomware campaign autonomously executed by a large language model (LLM). The campaign targeted an internet-facing application, pivoted to a production MySQL database, destroyed data, and issued an extortion demand without a human operator directing each technical step. :contentReference[oaicite:1]{index=1}
+
+While my investigation does not attribute this incident to JadePuffer or any other specific threat actor, the similarities reinforce an important defensive lesson: internet-facing database services remain attractive targets for automated extortion campaigns, regardless of whether they are driven by traditional scripts or increasingly autonomous tooling.
+
+---
+
+# References
+
+# References
+
+- **[Sysdig / Dark Reading – JadePuffer: The First Complete LLM-Driven Ransomware Attack](https://www.darkreading.com/cyberattacks-data-breaches/jadepuffer-first-complete-llm-driven-ransomware-attack)**
+
+- **[CISA – #StopRansomware Guide](https://www.cisa.gov/stopransomware/ransomware-guide)**
