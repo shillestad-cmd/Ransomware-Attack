@@ -147,3 +147,4 @@ The following changes were made:
 
 - Windows Firewall disabled.
 - Azure Network Security Group (NSG) updated to allow inbound traffic.
+  - Exact exposure timestamp "2026-07-20T14:02:47.9214895Z"
