@@ -147,4 +147,26 @@ The following changes were made:
 
 - Windows Firewall disabled.
 - Azure Network Security Group (NSG) updated to allow inbound traffic.
-  - Exact exposure timestamp "2026-07-20T14:02:47.9214895Z"
+  - Exact exposure timestamp "2026-07-20T14:02:47.9214895Z" (used to determine how long it took for the breach to happen)
+
+ ---
+
+ ## Phase 5 – Detect the Breach
+
+Analysis of the MySQL General Query Log showed that the attacker began executing malicious SQL commands at approximately **14:23 UTC**.
+
+This means the exposed MySQL service was compromised in approximately:
+
+**≈ 20 minutes**
+
+Within that time, the attacker:
+
+- Discovered the exposed MySQL service.
+- Authenticated using a privileged MySQL account.
+- Enumerated databases and tables.
+- Deleted the business tables.
+- Deleted the `ironpeak_corp_01` database.
+- Reset and purged MySQL binary logs.
+- Created the `recover_your_data` database.
+- Inserted a Bitcoin ransom note.
+ 
