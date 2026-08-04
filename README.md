@@ -2,11 +2,30 @@
 
 ---
 
+## Skills Demonstrated
+
+- Microsoft Defender for Endpoint
+- Microsoft Defender XDR
+- Azure Virtual Machines
+- Azure Log Analytics
+- Azure Monitor Agent
+- Data Collection Rules (DCR)
+- Kusto Query Language (KQL)
+- Threat Hunting
+- Digital Forensics
+- Incident Response
+- MySQL Administration
+- MITRE ATT&CK Mapping
+- Network Security
+- Azure Network Security Groups
+
+---
+
 ## Project Overview
 
 This project documents the process of building, monitoring, exposing, and investigating an internet-facing MySQL server hosted in Microsoft Azure. The environment was initially secured and configured with **Microsoft Defender for Endpoint (MDE)**, **Azure Monitor Agent (AMA)**, and **MySQL General Query Logging** to establish a clean baseline and capture detailed telemetry before exposing the server to the internet.
 
-After logging and monitoring were verified, the environment was intentionally exposed to observe real-world attacker activity. An unexpected ransomware attack targeted the MySQL database, resulting in the deletion of multiple databases and the creation of a ransom note. The remainder of this project focuses on reconstructing the attack, analyzing forensic evidence, and demonstrating the incident response process using **Microsoft Defender telemetry**, **Azure Monitor Agent (AMA)**, and **Kusto Query Language (KQL)**.
+After logging and monitoring were verified, the environment was intentionally exposed to observe real-world attacker activity. An database extortion attack targeted the MySQL database, resulting in the deletion of multiple databases and the creation of a ransom note. The remainder of this project focuses on reconstructing the attack, analyzing forensic evidence, and demonstrating the incident response process using **Microsoft Defender telemetry**, **Azure Monitor Agent (AMA)**, and **Kusto Query Language (KQL)**.
 
 The original plan was to continue through the **eradication** and **recovery** phases by remediating the compromised system. However, the attack left the virtual machine in a state where it could no longer be trusted. Rather than attempting to recover an untrusted system, the VM was wiped, rebuilt from a known-good state, and the MySQL environment was reconstructed. This reflects a common real-world incident response decision: when the integrity of a system cannot be confidently verified, rebuilding from a known-good baseline is often the safest and most reliable recovery strategy.
 
@@ -47,7 +66,7 @@ MySQL was installed on **CORP-EP-SH231** after first installing the required **M
 > - MySQL General Query Log enabled
 > - `SHOW VARIABLES LIKE 'general_log%';` output
 
- Enable MySQL General Query Logging
+### Enable MySQL General Query Logging
 
 The following SQL commands were executed to enable the MySQL General Query Log and configure MySQL to write all connection activity, authentication attempts, and SQL queries to a log file.
 
@@ -62,16 +81,49 @@ SHOW VARIABLES LIKE 'general_log%';
 
 In this phase, we configure **Azure Monitor Agent (AMA)** and a **Data Collection Rule (DCR)** to continuously collect MySQL General Query Logs from the virtual machine and send them to **Azure Log Analytics**. This allows all MySQL activity to be centrally collected and searched using Kusto Query Language (KQL).
 
-  **Step 1** – Verify Defender Telemetry
+### Step 1 – Verify Defender Telemetry
+
+Before configuring log collection, Microsoft Defender telemetry was verified to ensure the endpoint was successfully reporting to the Log Analytics Workspace.
+
+```kusto
 DeviceInfo
 | where DeviceName startswith "corp-ep-sh231"
 | order by TimeGenerated asc
+```
+
+Successful results confirmed that **CORP-EP-SH231** was onboarded correctly and actively reporting device telemetry.
 
 <img width="1432" height="884" alt="image" src="https://github.com/user-attachments/assets/d8c8a9c4-4dc3-4522-8cd3-e00b4a7864ae" />
 
-**Step 2** – Create the Data Collection Rule (DCR) in Azure
+### Step 2 – Create the Data Collection Rule (DCR)
 
-**Step 3** – Verify table MySQLAudit_CL/**`mysql_general.log`** in Azure 
+A custom **Data Collection Rule (DCR)** was created to continuously monitor the MySQL General Query Log and forward new entries to Azure Log Analytics.
+
+Configuration:
+
+| Setting | Value |
+|---------|------|
+| Data Source | Custom Text Log |
+| Log File | `C:\ProgramData\MySQL\MySQL Server 8.0\Data\mysql_general.log` |
+| Destination | `LAW_Cyber_Range` |
+| Output Table | `MySQLAudit_CL` |
+
+Once the DCR was assigned, Azure automatically installed the **Azure Monitor Agent (AMA)** on the virtual machine to begin collecting log data.
+
+### Step 3 – Verify Log Collection
+
+After the Azure Monitor Agent was installed, log ingestion was verified by querying the newly created **MySQLAudit_CL** table.
+
+This confirmed that SQL connections, authentication attempts, and queries were successfully being forwarded from the MySQL server into Azure Log Analytics.
+
+```kusto
+MySQLAudit_CL
+| where _ResourceId endswith "CORP-EP-SH231"
+| project TimeGenerated, RawData
+| order by TimeGenerated desc
+```
+
+Successful query results confirmed that the logging pipeline was functioning correctly and that all future MySQL activity would be available for threat hunting and forensic analysis.
 
 <img width="2015" height="763" alt="image" src="https://github.com/user-attachments/assets/9e5d87ef-cd3e-4598-89a5-760e52bb1dc9" />
 
@@ -180,8 +232,9 @@ First Confirmed Malicious SQL Activity:
 Time to Compromise:
 ≈ 20 Minutes
 ```
+Observation
 
-This demonstrates how quickly an exposed internet-facing database can be discovered and compromised.
+This demonstrates how rapidly exposed internet-facing services can be discovered by automated scanning infrastructure. Even in a controlled lab environment, the database was compromised in approximately twenty minutes after becoming publicly accessible.
 
 ### Attack Timeline
 
@@ -251,7 +304,7 @@ These commands allowed the attacker to determine:
 
 Once reconnaissance was complete, the attacker immediately began deleting business data.
 
-Observed SQL included:
+The following reconnaissance queries were observed in the MySQL General Query Log:
 
 ```sql
 DROP TABLE customers;
@@ -265,7 +318,7 @@ DROP TABLE credentials;
 DROP DATABASE ironpeak_corp_01;
 ```
 
-### Impact
+### Observed Impact
 
 The attacker destroyed:
 
@@ -403,6 +456,7 @@ Based on the timing of the compromise, the sequence of SQL commands, the Microso
 | Automated attack workflow | **High** |
 | Traditional Windows ransomware | **Low** |
 | Persistent Windows compromise | **Low** |
+| Windows Operating System Compromise | **Low** |
 | Data exfiltration | **Not Confirmed** |
 
 ---
@@ -428,13 +482,11 @@ While the attacker successfully destroyed the MySQL database and left a Bitcoin 
 
 During this investigation, the evidence indicated that the attack was most consistent with an opportunistic automated database extortion campaign targeting an exposed MySQL service.
 
-Although this investigation found no evidence that artificial intelligence was used during the attack, recent industry research demonstrates that database-focused extortion campaigns continue to evolve. In July 2026, researchers at Sysdig documented **JadePuffer**, which they described as the first publicly documented end-to-end ransomware campaign autonomously executed by a large language model (LLM). The campaign targeted an internet-facing application, pivoted to a production MySQL database, destroyed data, and issued an extortion demand without a human operator directing each technical step. :contentReference[oaicite:1]{index=1}
+Although this investigation found no evidence that artificial intelligence was used during the attack, recent industry research demonstrates that database-focused extortion campaigns continue to evolve. In July 2026, researchers at Sysdig documented **JadePuffer**, which they described as the first publicly documented end-to-end ransomware campaign autonomously executed by a large language model (LLM). The campaign targeted an internet-facing application, pivoted to a production MySQL database, destroyed data, and issued an extortion demand without a human operator directing each technical step.
 
 While my investigation does not attribute this incident to JadePuffer or any other specific threat actor, the similarities reinforce an important defensive lesson: internet-facing database services remain attractive targets for automated extortion campaigns, regardless of whether they are driven by traditional scripts or increasingly autonomous tooling.
 
 ---
-
-# References
 
 # References
 
